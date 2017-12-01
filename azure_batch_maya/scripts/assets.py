@@ -200,7 +200,7 @@ class AzureBatchAssets(object):
             handle.write("{\n")
             if plugins:
                 for plugin in plugins:
-                    handle.write("loadPlugin \"{}\";\n".format(encode(plugin))
+                    handle.write("loadPlugin \"{}\";\n".format(encode(plugin)))
             handle.write("dirmap -en true;\n")
             for local, remote in pathmap.items():
                 if os_flavor == utils.OperatingSystem.windows:

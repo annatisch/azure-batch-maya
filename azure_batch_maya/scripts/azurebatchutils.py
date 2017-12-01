@@ -117,13 +117,21 @@ def get_root_dir():
     """
     return maya.workspace(query=True, rootDirectory=True)
 
+
+def get_encoding(os_flavor):
+    """Get the encoding format needed for the remote OS environment."""
+    if os_flavor == OperatingSystem.windows or os_flavor == OperatingSystem.windows.value:
+        return 'utf-8'
+    else:
+        return 'iso-8859-1'
+
+
 def get_encoder(os_flavor):
     """Get a function to encode a string according to the remote OS environment."""
     def encode(str_value):
-        if os_flavor == OperatingSystem.windows or os_flavor == OperatingSystem.windows.value:
-            return str_value.encode('utf-8')
-        else:
-            return str_value.encode('iso-8859-1')
+        encoding = get_encoding(os_flavor)
+        print("Encoding into {}".format(encoding))
+        return str_value.encode(encoding)
     return encode
 
 

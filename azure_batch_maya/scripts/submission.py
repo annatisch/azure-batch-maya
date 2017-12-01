@@ -241,6 +241,7 @@ class AzureBatchSubmission(object):
         progress = None
         try:
             pool_os = self._get_os_flavor()
+            encoding = utils.get_encoding(pool_os)
             encode = utils.get_encoder(pool_os)
             job_id = "maya-render-{}".format(uuid.uuid4())
             self.renderer.disable(False)
@@ -288,8 +289,8 @@ class AzureBatchSubmission(object):
             self.ui.submit_status("Final renderer configuration...")
             self.renderer.final_setup(batch_parameters, job_assets)
             
-            self._log.debug(json.dumps(batch_parameters))
-            new_job = self.batch.job.jobparameter_from_json(batch_parameters)
+            self._log.debug(json.dumps(batch_parameters, encoding=encoding))
+            new_job = self.batch.job.jobparameter_from_json(batch_parameters, encoding=encoding)
             progress.is_cancelled()
             self.ui.submit_status("Submitting...")
             progress.status("Submitting...")
