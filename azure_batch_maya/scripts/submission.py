@@ -241,6 +241,7 @@ class AzureBatchSubmission(object):
         progress = None
         try:
             pool_os = self._get_os_flavor()
+            encode = utils.get_encoder(pool_os)
             job_id = "maya-render-{}".format(uuid.uuid4())
             self.renderer.disable(False)
             progress = utils.ProgressBar(self._log)
@@ -262,7 +263,7 @@ class AzureBatchSubmission(object):
 
             self.ui.submit_status("Checking assets...")
             scene_file, renderer_data = self.renderer.get_jobdata()
-            application_params['sceneFile'] = utils.format_scene_path(scene_file, pool_os)
+            application_params['sceneFile'] = encode(utils.format_scene_path(scene_file, pool_os))
             job_assets, progress = self.asset_manager.upload(
                 renderer_data, progress, job_id, plugins, pool_os)
 

@@ -164,6 +164,7 @@ class AzureBatchAssets(object):
          to determine the formatting of the path remapping.
         """
         proj_file = os.path.join(tempfile.gettempdir(), "workspace.mel")
+        encode = utils.get_encoder(os_flavor)
         with open(proj_file, 'w') as handle:
             for rule in maya.workspace(fileRuleList=True):
                 project_dir = maya.workspace(fileRuleEntry=rule)
@@ -173,7 +174,7 @@ class AzureBatchAssets(object):
                 else:
                     full_remote_path = "/X/" + remote_path
                 mapped_dir = "workspace -fr \"{}\" \"{}\";\n".format(rule, full_remote_path)
-                handle.write(mapped_dir.encode('utf-8'))
+                handle.write(encode(mapped_dir))
         return Asset(proj_file, [], self.batch, self._log)
 
     def _create_path_map(self, plugins, os_flavor):
@@ -189,6 +190,7 @@ class AzureBatchAssets(object):
          to determine the formatting of the path remapping.
         """
         map_file = os.path.join(tempfile.gettempdir(), "asset_map.mel")
+        encode = utils.get_encoder(os_flavor)
         pathmap = dict(self._assets.pathmaps)
         for asset in self._assets.refs:
             pathmap.update(asset.pathmap)
@@ -198,7 +200,7 @@ class AzureBatchAssets(object):
             handle.write("{\n")
             if plugins:
                 for plugin in plugins:
-                    handle.write("loadPlugin \"{}\";\n".format(plugin.encode('utf-8')))
+                    handle.write("loadPlugin \"{}\";\n".format(encode(plugin))
             handle.write("dirmap -en true;\n")
             for local, remote in pathmap.items():
                 if os_flavor == utils.OperatingSystem.windows:
@@ -208,8 +210,8 @@ class AzureBatchAssets(object):
                 parsed_local = local.replace('\\', '\\\\')
                 cloud_paths.append(full_remote_path)
                 map_cmd = "dirmap -m \"{}\" \"{}\";\n".format(parsed_local, full_remote_path)
-                handle.write(map_cmd.encode('utf-8'))
-            self.renderer.setup_script(handle, pathmap, cloud_paths)
+                handle.write(encode(map_cmd))
+            self.renderer.setup_script(handle, pathmap, cloud_paths, encode)
             handle.write("}")
         return Asset(map_file, [], self.batch, self._log), ';'.join(cloud_paths)
 

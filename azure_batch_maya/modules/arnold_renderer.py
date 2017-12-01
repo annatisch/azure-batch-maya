@@ -145,8 +145,8 @@ class ArnoldRenderAssets(AzureBatchRenderAssets):
             self.assets.append(self.check_path(path))
         return self.assets
     
-    def setup_script(self, script_handle, pathmap, searchpaths):
-        search_path = ';'.join(searchpaths).encode('utf-8')
+    def setup_script(self, script_handle, pathmap, searchpaths, encode):
+        search_path = encode(';'.join(searchpaths))
         script_handle.write("setAttr -type \"string\" defaultArnoldRenderOptions.procedural_searchpath \"{}\";\n".format(search_path))
         script_handle.write("setAttr -type \"string\" defaultArnoldRenderOptions.plugin_searchpath \"{}\";\n".format(search_path))
         script_handle.write("setAttr -type \"string\" defaultArnoldRenderOptions.texture_searchpath \"{}\";\n".format(search_path))

@@ -181,5 +181,5 @@ class AzureBatchRenderAssets(object):
     def renderer_assets(self):
         return self.assets
 
-    def setup_script(self, script_handle, pathmap, searchpaths):
+    def setup_script(self, script_handle, pathmap, searchpaths, encode):
         pass

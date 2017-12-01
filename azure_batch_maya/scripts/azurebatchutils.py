@@ -117,6 +117,15 @@ def get_root_dir():
     """
     return maya.workspace(query=True, rootDirectory=True)
 
+def get_encoder(os_flavor):
+    """Get a function to encode a string according to the remote OS environment."""
+    def encode(str_value):
+        if os_flavor == OperatingSystem.windows or os_flavor == OperatingSystem.windows.value:
+            return str_value.encode('utf-8')
+        else:
+            return str_value.encode('iso-8859-1')
+    return encode
+
 
 class OperatingSystem(Enum):
     windows = 'Windows'
