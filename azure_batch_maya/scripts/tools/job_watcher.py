@@ -45,9 +45,9 @@ def _check_valid_dir(directory):
 
 
 def _download_output(job_id, output_name, output_path, size):
-    print("Downloading task output: {}".format(output_name))
+    #print(str("Downloading task output: {}").format(str(output_name)))
     batch_client.file.download(output_path, job_id, remote_path=output_name)
-    print("Output {} download successful".format(output_name))
+    #print(str("Output {} download successful").format(str(output_name)))
 
 
 def _track_completed_outputs(job_id, dwnld_dir):

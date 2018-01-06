@@ -49,6 +49,12 @@
         "description": "The SAS URL to the project workspace"
       }
     },
+    "renderCmd": {
+      "type": "string",
+      "metadata": {
+        "description": "The SAS URL to the render cmd script"
+      }
+    },
     "frameStep": {
       "type": "int",
       "metadata": {
@@ -99,6 +105,10 @@
       {
         "blobSource": "[parameters('workspace')]",
         "filePath": "workspace.mel"
+      },
+      {
+        "blobSource": "[parameters('renderCmd')]",
+        "filePath": "renderCmd"
       }
     ],
     "commandLine": "/bin/bash -c \"yum install -y libunwind libicu && curl -sSL -o dotnet.tar.gz https://go.microsoft.com/fwlink/?linkid=848821 && mkdir -p /opt/dotnet && tar zxf dotnet.tar.gz -C /opt/dotnet && ln -nsf /opt/dotnet/dotnet /usr/local/bin && wget -O azcopy.tar.gz https://aka.ms/downloadazcopyprlinux && tar -xf azcopy.tar.gz && ./install.sh && azcopy --source \\\"[parameters('storageURL')]\\\" --destination $AZ_BATCH_JOB_PREP_WORKING_DIR/assets --recursive\""
@@ -120,7 +130,7 @@
           "elevationLevel": "admin"
         }
       },
-      "commandLine": "sudo mkdir -m a=rwx -p \"/X\";sudo mount --rbind $AZ_BATCH_JOB_PREP_WORKING_DIR/assets /X;Render -renderer [parameters('renderer')] -proj \"$AZ_BATCH_JOB_PREP_WORKING_DIR\" -ai:ltc 1 -ai:lve [parameters('logLevel')] -verb -preRender renderPrep -rd \"$AZ_BATCH_TASK_WORKING_DIR/images\" -s {0} -e {0} \"[parameters('sceneFile')]\";err=$?;python /mnt/resource/batch/tasks/workitems/[parameters('outputs')]/job-1/jobpreparation/wd/thumbnail.py $err;sudo umount \"/X\";exit $err",
+      "commandLine": "sudo mkdir -m a=rwx -p \"/X\";sudo mount --rbind $AZ_BATCH_JOB_PREP_WORKING_DIR/assets /X;$AZ_BATCH_JOB_PREP_WORKING_DIR/renderCmd {0} {0};err=$?;python /mnt/resource/batch/tasks/workitems/[parameters('outputs')]/job-1/jobpreparation/wd/thumbnail.py $err;sudo umount \"/X\";exit $err",
       "environmentSettings": [
         {
           "name": "MAYA_SCRIPT_PATH",

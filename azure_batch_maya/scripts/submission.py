@@ -262,23 +262,24 @@ class AzureBatchSubmission(object):
             plugins = self._check_plugins()
             application_params['outputs'] = job_id
 
-            self.ui.submit_status("Checking assets...")
+            self.ui.submit_status("Configuring job...")
+            progress.status("Configuring job...")
             scene_file, renderer_data = self.renderer.get_jobdata()
-            application_params['sceneFile'] = encode(utils.format_scene_path(scene_file, pool_os))
+            application_params['sceneFile'] = utils.format_scene_path(scene_file, pool_os)
+            application_params.update(self.renderer.get_params())
+            command = self.renderer.get_command(application_params, pool_os)
+
+            self.ui.submit_status("Checking assets...")
             job_assets, progress = self.asset_manager.upload(
-                renderer_data, progress, job_id, plugins, pool_os)
+                renderer_data, progress, job_id, plugins, pool_os, command)
 
             application_params['projectData'] = job_assets['project']
             application_params['assetScript'] = job_assets['path_map']
             application_params['thumbScript'] = job_assets['thumb_script']
+            application_params['renderCmd'] = job_assets['render_cmd']
             application_params['workspace'] = job_assets['workspace']
             application_params['storageURL'] = self.asset_manager.generate_sas_token(job_assets['project'])
             self._switch_tab()
-
-            self.ui.submit_status("Configuring job...")
-            progress.status("Configuring job...")
-            job_params = self.renderer.get_params()
-            application_params.update(job_params)
 
             self.ui.submit_status("Setting pool...")
             progress.status("Setting pool...")
@@ -289,8 +290,8 @@ class AzureBatchSubmission(object):
             self.ui.submit_status("Final renderer configuration...")
             self.renderer.final_setup(batch_parameters, job_assets)
             
-            self._log.debug(json.dumps(batch_parameters, encoding=encoding))
-            new_job = self.batch.job.jobparameter_from_json(batch_parameters, encoding=encoding)
+            self._log.debug(json.dumps(batch_parameters))
+            new_job = self.batch.job.jobparameter_from_json(batch_parameters)
             progress.is_cancelled()
             self.ui.submit_status("Submitting...")
             progress.status("Submitting...")

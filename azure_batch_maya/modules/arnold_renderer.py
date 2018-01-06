@@ -26,6 +26,7 @@ except NameError:
 class ArnoldRenderJob(AzureBatchRenderJob):
 
     render_engine = 'arnold'
+    linux_render_cmd = "Render -renderer arnold -proj \"$AZ_BATCH_JOB_PREP_WORKING_DIR\" -ai:ltc 1 -ai:lve {logLevel} -verb -preRender renderPrep -rd \"$AZ_BATCH_TASK_WORKING_DIR/images\" -s $1 -e $2 \"{sceneFile}\""
 
     def __init__(self):
         self._renderer = 'arnold'
@@ -96,6 +97,10 @@ class ArnoldRenderJob(AzureBatchRenderJob):
         params['renderer'] = self._renderer
         params['logLevel'] = int(cmds.optionMenu(self.logging, query=True, select=True)) - 1
         return params
+
+    def get_command(self, params, os_flavor):
+        if os_flavor.value == 'Linux':
+            return self.linux_render_cmd.format(**params)
 
 
 class ArnoldRenderAssets(AzureBatchRenderAssets):

@@ -177,6 +177,26 @@ class AzureBatchAssets(object):
                 handle.write(encode(mapped_dir))
         return Asset(proj_file, [], self.batch, self._log)
 
+    def _create_cmd_script(self, command, os_flavor):
+        """Create the pre-render mel script to redirect all the asset reference
+        directories for this render. Called on job submission, and the resulting
+        file is uploaded as an asset to the current file group.
+        Also returns a formatted list of cloud destination directories as
+        search paths that can be used according to renderer.
+
+        :param plugins: A list of the currently enabled plugins, so that these can
+         also be enabled on the server.
+        :param str os_flavor: The chosen operating system of the render nodes, used
+         to determine the formatting of the path remapping.
+        """
+        cmd_file = os.path.join(tempfile.gettempdir(), "render_cmd")
+        encode = utils.get_encoder(os_flavor)
+        if os_flavor == utils.OperatingSystem.linux:
+            with open(cmd_file, 'w') as handle:
+                handle.write("#!/usr/bin/env bash\n")
+                handle.write(encode(command))
+        return Asset(cmd_file, [], self.batch, self._log)
+
     def _create_path_map(self, plugins, os_flavor):
         """Create the pre-render mel script to redirect all the asset reference
         directories for this render. Called on job submission, and the resulting
@@ -330,7 +350,7 @@ class AzureBatchAssets(object):
                     self._assets.add_asset(
                         os.path.join(root, filename), self.ui, column_layout, scroll_layout)
 
-    def upload(self, job_set=None, progress_bar=None, job_id=None, load_plugins=None, os_flavor=None):
+    def upload(self, job_set=None, progress_bar=None, job_id=None, load_plugins=None, os_flavor=None, cmd=None):
         """Upload all the selected assets. Can be initiated as a standalone process
         from the assets tab, or as part of job submission.
         :param job_set: A list of job assets, like the scene file. This is only populated
@@ -361,8 +381,9 @@ class AzureBatchAssets(object):
                 thumb_script = Asset(os.path.join(os.environ['AZUREBATCH_TOOLS'], 'generate_thumbnails.py'),
                                      [], self.batch, self._log)
                 workspace = self._create_remote_workspace(os_flavor)
+                cmd_script = self._create_cmd_script(cmd, os_flavor)
                 asset_refs.extend(job_assets)
-                asset_refs.extend([path_map, thumb_script, workspace])
+                asset_refs.extend([path_map, thumb_script, workspace, cmd_script])
                 asset_data['search_paths'] = search_paths
 
             progress_bar.is_cancelled()
@@ -380,6 +401,7 @@ class AzureBatchAssets(object):
                 asset_data['path_map'] = path_map.get_url(asset_data['project'])
                 asset_data['thumb_script'] = thumb_script.get_url(asset_data['project'])
                 asset_data['workspace'] = workspace.get_url(asset_data['project'])
+                asset_data['render_cmd'] = cmd_script.get_url(asset_data['project'])
                 return asset_data, progress_bar
             else:
                 return None
